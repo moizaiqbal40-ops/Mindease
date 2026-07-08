@@ -7,7 +7,7 @@ Apache 2.0 License
 
 import streamlit as st
 import numpy as np
-import re, random, time
+import re, random, time, html
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -336,67 +336,142 @@ NEGATIVE_WORDS = {
     "worry","worried","pressure","difficult","struggle","struggling","failing",
     "cant","can't","cannot","never","lonely","ignored","unloved","rejected",
     "suffocating","misery","anguish","devastated","shattered","cried",
-    "dying","dead","numb","pointless","pathetic","disgusting","bad","upset",
-    "nervous","tense","restless","irritated","confused","lost","heartbroken"
+    "dying","dead","pointless","pathetic","disgusting","bad","upset",
+    "nervous","tense","restless","irritated","confused","heartbroken",
+    "drowning","drained","terrified","panicking","shattering","losing"
 }
 POSITIVE_WORDS = {
     "happy","good","great","wonderful","amazing","better","hope","hopeful",
     "calm","peace","peaceful","joy","grateful","thankful","love","loved",
     "strong","okay","fine","improving","progress","success","smile","laugh",
-    "blessed","content","relaxed","confident","proud","safe","excited"
+    "blessed","content","relaxed","confident","proud","safe","excited",
+    "refreshed","satisfied","balanced","steady"
 }
+NEGATION_WORDS   = {"not","no","never","cant","can't","cannot","won't","wont","dont","don't"}
+INTENSIFIERS     = {"very","extremely","really","so","totally","completely",
+                     "utterly","absolutely","incredibly"}
+ABSOLUTIST_WORDS = {"always","never","everything","nothing","everyone",
+                     "no one","completely","totally","constantly"}
+FIRST_PERSON     = {"i","me","my","myself","mine"}
+
+FEATURE_NAMES = ["neg","length","excl","caps","qmarks","lex","pos",
+                  "intensifiers","negation_flips","first_person_ratio",
+                  "absolutist","elongated"]
+
+# ══════════════════════════════════════════════════════════
+#  FEATURE EXTRACTION (from scratch — regex + counting only)
+#  12 signals instead of the original 7. Negation-aware ("not
+#  happy" now correctly reads as negative, not positive), plus
+#  intensifiers, absolutist/catastrophizing language, first-
+#  person pronoun ratio, and elongated letters ("sooo tired").
+# ══════════════════════════════════════════════════════════
+MAX_INPUT_WORDS = 300   # token-management: cap runaway inputs before any processing
 
 def extract_features(text):
-    """Extract 7 numerical stress signals from raw text."""
-    if not text or not text.strip(): return [0, 0, 0, 0, 0, 1.0, 0]
-    words = text.lower().split()
-    total = max(len(words), 1)
-    cleaned = [re.sub(r"[^a-z']", "", w) for w in words]
-    neg    = sum(1 for w in cleaned if w in NEGATIVE_WORDS)
-    pos    = sum(1 for w in cleaned if w in POSITIVE_WORDS)
-    excl   = text.count("!")
-    qmarks = text.count("?")
-    caps   = sum(1 for c in text if c.isupper()) / max(len(text), 1)
-    lex    = len(set(words)) / total
-    return [neg, total, excl, caps, qmarks, lex, pos]
+    """Extract 12 numerical stress signals from raw text."""
+    if not text or not text.strip():
+        return [0.0] * len(FEATURE_NAMES)
 
-# ── LINEAR REGRESSION (from scratch, NumPy only) ──────────
-# Weights learned from stress dataset: [neg, length, excl, caps, qmarks, lex, pos]
-_LR_W = np.array([1.85, 0.04, 0.60, 8.00, 0.45, -0.80, -1.40])
-_LR_B = 0.30
+    words_all = text.split()
+    if len(words_all) > MAX_INPUT_WORDS:               # token/length guard
+        text = " ".join(words_all[:MAX_INPUT_WORDS])
+
+    lower = text.lower()
+    raw_words = lower.split()
+    total = max(len(raw_words), 1)
+    cleaned = [re.sub(r"[^a-z']", "", w) for w in raw_words]
+
+    neg = pos = negation_flips = 0
+    for i, w in enumerate(cleaned):
+        prev = cleaned[i - 1] if i > 0 else ""
+        negated = prev in NEGATION_WORDS
+        if w in NEGATIVE_WORDS:
+            if negated: pos += 1; negation_flips += 1
+            else: neg += 1
+        elif w in POSITIVE_WORDS:
+            if negated: neg += 1; negation_flips += 1
+            else: pos += 1
+
+    excl  = text.count("!")
+    qmarks= text.count("?")
+    caps  = sum(1 for c in text if c.isupper()) / max(len(text), 1)
+    lex   = len(set(raw_words)) / total
+    intens= sum(1 for w in cleaned if w in INTENSIFIERS)
+    fp    = sum(1 for w in cleaned if w in FIRST_PERSON) / total
+    absol = sum(1 for w in cleaned if w in ABSOLUTIST_WORDS)
+    elong = sum(1 for w in raw_words if re.search(r"(.)\1{2,}", w))
+
+    return [float(neg), float(total), float(excl), float(caps), float(qmarks),
+            float(lex), float(pos), float(intens), float(negation_flips),
+            float(fp), float(absol), float(elong)]
+
+# ══════════════════════════════════════════════════════════
+#  TRAINED MODEL PARAMETERS
+#  These weights/tree were produced by train.py (included
+#  alongside this app), which trains all three models from
+#  scratch with NumPy on a hand-labeled 100-example dataset
+#  (dataset.py) and evaluates on a held-out 20% test split.
+#  Real measured test metrics (see README "Model Performance"):
+#    Linear Regression : MAE 1.21   R² 0.71
+#    SVM                : Accuracy 85%   F1 0.82
+#    Decision Tree      : Accuracy 55%  (±1-level accuracy 90%)
+#  Retrain any time with: python train.py
+# ══════════════════════════════════════════════════════════
+_FEATURE_MEAN = np.array([1.0625, 10.1125, 0.2, 0.02955517513949562, 0.0,
+                           0.9848844211344211, 0.3375, 0.1875, 0.0125,
+                           0.09035769785769782, 0.325, 0.0])
+_FEATURE_STD  = np.array([0.9532018411648185, 1.3692493381411588, 0.6,
+                           0.038495830396417116, 1.0, 0.03737052805665298,
+                           0.6697714162309405, 0.3903123748998999,
+                           0.11110243021644478, 0.07107813488797789,
+                           0.4683748498798798, 1.0])
+
+_LR_W = np.array([1.8009738875608539, 0.4164688599741862, 0.2772629778725265,
+                   0.30621136519287606, 0.0, 0.06392167705112961,
+                   -0.6015275118626192, 0.12708281801324223,
+                   -0.2486494999329232, 0.4028416676517348,
+                   0.5685201463299612, 0.0])
+_LR_B = 5.063749999999992
+
+_SVM_W = np.array([0.39467118900736126, 0.29691114867754154,
+                    0.12010644705277222, 0.04719428331633721, 0.0,
+                    0.05671684625547993, -0.18842614404046637,
+                    0.1546557556337449, -3.2102480899879263e-07,
+                    0.10325596756159879, 0.13600945559833316, 0.0])
+_SVM_B = 0.03312500000000002
+
+# Greedy Gini-impurity decision tree, max depth 6, trained on the same
+# normalized features. Stored as a nested dict; walked at inference time.
+_DT_TREE = {"leaf": False, "feature": 0, "threshold": -1.1146642338642763, "left": {"leaf": False, "feature": 6, "threshold": -0.5039032598602691, "left": {"leaf": False, "feature": 1, "threshold": 0.6481653671674115, "left": {"leaf": False, "feature": 5, "threshold": -2.0281627256807977, "left": {"leaf": False, "feature": 1, "threshold": -0.08216180710572879, "left": {"leaf": False, "feature": 3, "threshold": 0.23135916878082932, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": -0.29544386601245975, "left": {"leaf": False, "feature": 3, "threshold": -0.3554192525680176, "left": {"leaf": True, "class": 0}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 0}}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 3, "threshold": 0.11282078865492846, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.3146182691073548, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}}}, "right": {"leaf": False, "feature": 2, "threshold": -0.33333333333333354, "left": {"leaf": False, "feature": 1, "threshold": -1.5428161556520092, "left": {"leaf": True, "class": 1}, "right": {"leaf": False, "feature": 0, "threshold": -0.06556848434495742, "left": {"leaf": False, "feature": 9, "threshold": -1.2712446380325726, "left": {"leaf": False, "feature": 3, "threshold": -0.3618619210456654, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": -0.3038779047468351, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}}, "right": {"leaf": False, "feature": 9, "threshold": 0.007757562185081444, "left": {"leaf": False, "feature": 7, "threshold": -0.48038446141526137, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 1, "threshold": 1.3784925414405518, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 2}}}}}, "right": {"leaf": True, "class": 3}}}
+
+_DT_LABELS = {0: "LOW", 1: "LOW-MED", 2: "MEDIUM", 3: "HIGH"}
+
+def _normalize(features):
+    x = np.array(features, dtype=float)
+    return (x - _FEATURE_MEAN) / _FEATURE_STD
 
 def lr_predict(features):
-    """Continuous stress score 0–10 via gradient-descent LR."""
-    x = np.array(features, dtype=float)
+    """Continuous stress score 0–10, trained via batch gradient descent (NumPy only)."""
+    x = _normalize(features)
     score = float(np.dot(x, _LR_W) + _LR_B)
     return round(float(np.clip(score, 0, 10)), 1)
 
-# ── DECISION TREE (rule-based) ─────────────────────────────
-def dt_predict(features):
-    """Categorical: LOW / LOW-MED / MEDIUM / HIGH via DT rules."""
-    neg, length, excl, caps, qmarks, lex, pos = features
-    # Node 1: very high negative + intensity signals → HIGH
-    if neg >= 5 or (neg >= 3 and excl >= 2) or (caps > 0.30 and neg >= 2):
-        return "HIGH", 3
-    # Node 2: moderate stress signals → MEDIUM
-    if neg >= 3 or excl >= 3 or (qmarks >= 2 and neg >= 1) or (caps > 0.20 and neg >= 1):
-        return "MEDIUM", 2
-    # Node 3: mild signals → LOW-MED
-    if neg >= 1 or excl >= 1 or qmarks >= 1:
-        return "LOW-MED", 1
-    # Positive words outweigh negatives → LOW
-    return "LOW", 0
-
-# ── SVM (decision boundary classifier) ────────────────────
-_SVM_WEIGHTS = np.array([2.0, 0.02, 0.80, 10.0, 0.60, -0.50, -1.60])
-_SVM_BIAS    = -1.0
-_SVM_THRESH  = 0.0   # decision boundary
-
 def svm_predict(features):
-    """Binary: STRESSED / NOT STRESSED via SVM decision boundary."""
-    x  = np.array(features, dtype=float)
-    sv = float(np.dot(x, _SVM_WEIGHTS) + _SVM_BIAS)
-    return ("STRESSED", 1) if sv > _SVM_THRESH else ("NOT STRESSED", 0)
+    """Binary STRESSED / NOT STRESSED, trained via hinge-loss subgradient descent."""
+    x = _normalize(features)
+    sv = float(np.dot(x, _SVM_W) + _SVM_B)
+    return ("STRESSED", 1) if sv > 0 else ("NOT STRESSED", 0)
+
+def _walk_tree(node, x):
+    while not node["leaf"]:
+        node = node["left"] if x[node["feature"]] <= node["threshold"] else node["right"]
+    return node["class"]
+
+def dt_predict(features):
+    """Categorical LOW / LOW-MED / MEDIUM / HIGH via a greedy Gini decision tree."""
+    x = _normalize(features)
+    cls = _walk_tree(_DT_TREE, x)
+    return _DT_LABELS[cls], cls
 
 def mood_breakdown(text, lr_score):
     """Estimate emotion percentages from lexical analysis."""
@@ -425,22 +500,37 @@ def mood_breakdown(text, lr_score):
     pct["Happy"] = max(0, pct["Happy"] + diff)
     return pct
 
+def detect_distortions(features):
+    """Flag simple CBT cognitive-distortion signals (for response personalization)."""
+    neg, length, excl, caps, qmarks, lex, pos, intens, flips, fp, absolutist, elong = features
+    flags = []
+    if absolutist >= 1:
+        flags.append("all-or-nothing")   # "always/never/everything" -> catastrophizing / black-and-white thinking
+    if fp > 0.15 and neg >= 2:
+        flags.append("self-blame")       # heavy first-person focus alongside negative language
+    if intens >= 1 and neg >= 1:
+        flags.append("catastrophizing")  # "completely/utterly" + negative words
+    return flags
+
 def analyze(text):
     """Run full tri-algorithm pipeline on input text."""
     f              = extract_features(text)
     lr             = lr_predict(f)
     dt, dtl        = dt_predict(f)
     svm, svmb      = svm_predict(f)
-    # Ensemble: weighted vote of all 3 models
-    # LR contributes directly; DT maps level→score; SVM adds binary signal
-    ens = round(lr * 0.50 + dtl * (10/3) * 0.30 + svmb * 10 * 0.20, 1)
+    # Ensemble: weighted vote of all 3 models, weights set from relative
+    # validation performance (SVM strongest on this task, DT weakest —
+    # see README metrics). LR contributes a continuous score directly;
+    # DT maps its level to a 0-10 scale; SVM adds a binary push.
+    ens = round(lr * 0.55 + dtl * (10/3) * 0.20 + svmb * 10 * 0.25, 1)
     ens = float(np.clip(ens, 0, 10))
-    # Boost if LR itself is already high
     if lr >= 7.0:
         ens = max(ens, lr * 0.9)
     ens  = round(ens, 1)
     mood = mood_breakdown(text, lr)
-    return {"lr": lr, "dt": dt, "dtl": dtl, "svm": svm, "ens": ens, "features": f, "mood": mood}
+    distortions = detect_distortions(f)
+    return {"lr": lr, "dt": dt, "dtl": dtl, "svm": svm, "ens": ens,
+            "features": f, "mood": mood, "distortions": distortions}
 
 
 # ══════════════════════════════════════════════════════════
@@ -481,13 +571,24 @@ RESP = {
         "exercise":"TENSE each muscle group 5 sec then RELEASE: Feet → Legs → Stomach → Hands → Shoulders → Face. Feel the release."}
 }
 
+DISTORTION_REFRAMES = {
+    "all-or-nothing": "I noticed some 'always/never/everything' language — that's a common thought pattern called all-or-nothing thinking. Try asking: is this really *always* true, or does it just feel that way right now?",
+    "self-blame": "A lot of this seems to be landing on you specifically. It's worth asking whether you'd judge a friend this harshly for the same situation.",
+    "catastrophizing": "The intensity here suggests this might feel bigger than it is in this moment — a classic stress amplifier. Naming the specific worry (not the 'everything is ruined' version) can shrink it back to size.",
+}
+
 def get_response(analysis):
-    s,dtl = analysis["ens"], analysis["dtl"]
+    s, dtl = analysis["ens"], analysis["dtl"]
     lvl = dtl
-    if s>=7: lvl=3
-    elif s>=5: lvl=max(lvl,2)
+    if s >= 7: lvl = 3
+    elif s >= 5: lvl = max(lvl, 2)
     rd = RESP[lvl]
-    return lvl, rd, random.choice(rd["responses"])
+    base = random.choice(rd["responses"])
+    # CBT touch: gently name one detected distortion, if any, without diagnosing the person.
+    distortions = analysis.get("distortions", [])
+    if distortions:
+        base = base + " " + DISTORTION_REFRAMES[distortions[0]]
+    return lvl, rd, base
 
 
 # ══════════════════════════════════════════════════════════
@@ -910,6 +1011,14 @@ elif st.session_state.page == "Chat Mode":
                             send = True
 
             if send and user_input and user_input.strip():
+                # Token/length management: cap input before analysis and storage
+                # so a very long paste can't blow up processing time or the
+                # rendered chat bubble.
+                _words = user_input.split()
+                if len(_words) > MAX_INPUT_WORDS:
+                    user_input = " ".join(_words[:MAX_INPUT_WORDS]) + " …"
+                safe_input = html.escape(user_input)  # prevent HTML/script injection into the bubble
+
                 result           = analyze(user_input)
                 lvl, rd, resp_t  = get_response(result)
 
@@ -941,7 +1050,7 @@ elif st.session_state.page == "Chat Mode":
 </div>"""
 
                 # Save to history + end session
-                st.session_state.chat_history.append({"role": "user",  "content": user_input})
+                st.session_state.chat_history.append({"role": "user",  "content": safe_input})
                 st.session_state.chat_history.append({"role": "bot",   "content": bot_msg})
                 st.session_state.score_history.append(result["lr"])
                 st.session_state.chat_ended     = True
