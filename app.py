@@ -104,9 +104,8 @@ section[data-testid="stSidebar"] > div { padding: 0 !important; }
     padding-left: 15px;
 }
 
-/* ── Streamlit Radio — styled as nav ── */
+/* ── Streamlit Radio — styled as clean option cards ── */
 .stRadio > div { gap: 0 !important; }
-.stRadio [data-testid="stMarkdownContainer"] p { display: none; }
 .stRadio label {
     display: flex !important;
     align-items: center !important;
@@ -809,17 +808,6 @@ with st.sidebar:
     st.markdown("<hr style='border:none; border-top:1px solid #B8E2E0; margin:1rem 12px;'>", unsafe_allow_html=True)
 
     # Quick info
-    st.markdown("""
-    <div style='padding:0.9rem 1rem; background:#FFFFFF; border:1px solid #D4F0EE; border-radius:14px; margin:0 8px; font-size:0.8rem; line-height:2;'>
-        <div style='color:#5A9A94; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;'>ML Pipeline</div>
-        <span style='color:#2E7A72; font-weight:600;'>📈 Linear Regression</span><br>
-        <span style='color:#8ABFBB;'>Stress score 0–10</span><br>
-        <span style='color:#2E7A72; font-weight:600;'>🌳 Decision Tree</span><br>
-        <span style='color:#8ABFBB;'>Low / Med / High</span><br>
-        <span style='color:#2E7A72; font-weight:600;'>⚡ SVM</span><br>
-        <span style='color:#8ABFBB;'>Stressed / Not Stressed</span>
-    </div>
-    """, unsafe_allow_html=True)
 
     st.markdown("""
     <div style='padding:0.9rem 1rem; background:#FFFFFF; border:1px solid #D4F0EE; border-radius:14px;
