@@ -412,37 +412,39 @@ def extract_features(text):
 #  scratch with NumPy on a hand-labeled 100-example dataset
 #  (dataset.py) and evaluates on a held-out 20% test split.
 #  Real measured test metrics (see README "Model Performance"):
-#    Linear Regression : MAE 1.21   R² 0.71
-#    SVM                : Accuracy 85%   F1 0.82
-#    Decision Tree      : Accuracy 55%  (±1-level accuracy 90%)
+#    Linear Regression : MAE 1.22   R² 0.73
+#    SVM                : Accuracy 82%   F1 0.80
+#    Decision Tree      : Accuracy 59%  (±1-level accuracy 100%)
 #  Retrain any time with: python train.py
 # ══════════════════════════════════════════════════════════
-_FEATURE_MEAN = np.array([1.0625, 10.1125, 0.2, 0.02955517513949562, 0.0,
-                           0.9848844211344211, 0.3375, 0.1875, 0.0125,
-                           0.09035769785769782, 0.325, 0.0])
-_FEATURE_STD  = np.array([0.9532018411648185, 1.3692493381411588, 0.6,
-                           0.038495830396417116, 1.0, 0.03737052805665298,
-                           0.6697714162309405, 0.3903123748998999,
-                           0.11110243021644478, 0.07107813488797789,
-                           0.4683748498798798, 1.0])
+_FEATURE_MEAN = np.array([1.0543478260869565, 9.695652173913043, 0.17391304347826086,
+                           0.030818090273619543, 0.0, 0.9877618154792068,
+                           0.31521739130434784, 0.1956521739130435,
+                           0.010869565217391304, 0.08690524451394012,
+                           0.30434782608695654, 0.0])
+_FEATURE_STD  = np.array([0.9482722324538985, 2.030951428543768, 0.5635426694267708,
+                           0.03643818138879521, 1.0, 0.03446475706774315,
+                           0.6414885512904135, 0.3967019041498838,
+                           0.10368904363227668, 0.07753349634111395,
+                           0.4601306627938417, 1.0])
 
-_LR_W = np.array([1.8009738875608539, 0.4164688599741862, 0.2772629778725265,
-                   0.30621136519287606, 0.0, 0.06392167705112961,
-                   -0.6015275118626192, 0.12708281801324223,
-                   -0.2486494999329232, 0.4028416676517348,
-                   0.5685201463299612, 0.0])
-_LR_B = 5.063749999999992
+_LR_W = np.array([1.7857506989908, 0.07936848122489967, 0.20554781187890553,
+                   0.3655948511943456, 0.0, 0.07742385294003504,
+                   -0.6576504485668843, 0.32741330507485655,
+                   -0.40809441235720917, 0.4987829397097666,
+                   0.5489360572995601, 0.0])
+_LR_B = 5.028260869565209
 
-_SVM_W = np.array([0.39467118900736126, 0.29691114867754154,
-                    0.12010644705277222, 0.04719428331633721, 0.0,
-                    0.05671684625547993, -0.18842614404046637,
-                    0.1546557556337449, -3.2102480899879263e-07,
-                    0.10325596756159879, 0.13600945559833316, 0.0])
-_SVM_B = 0.03312500000000002
+_SVM_W = np.array([0.3784928704843767, 0.14091257963897771, 0.07789962970284584,
+                    0.05509102591457233, 0.0, 0.05764677709210057,
+                    -0.20177512291972238, 0.1931691676841796,
+                    8.533388307236952e-07, 0.1504501965717579,
+                    0.14219855017936006, 0.0])
+_SVM_B = -0.008369565217391295
 
 # Greedy Gini-impurity decision tree, max depth 6, trained on the same
 # normalized features. Stored as a nested dict; walked at inference time.
-_DT_TREE = {"leaf": False, "feature": 0, "threshold": -1.1146642338642763, "left": {"leaf": False, "feature": 6, "threshold": -0.5039032598602691, "left": {"leaf": False, "feature": 1, "threshold": 0.6481653671674115, "left": {"leaf": False, "feature": 5, "threshold": -2.0281627256807977, "left": {"leaf": False, "feature": 1, "threshold": -0.08216180710572879, "left": {"leaf": False, "feature": 3, "threshold": 0.23135916878082932, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": -0.29544386601245975, "left": {"leaf": False, "feature": 3, "threshold": -0.3554192525680176, "left": {"leaf": True, "class": 0}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 0}}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 3, "threshold": 0.11282078865492846, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.3146182691073548, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}}}, "right": {"leaf": False, "feature": 2, "threshold": -0.33333333333333354, "left": {"leaf": False, "feature": 1, "threshold": -1.5428161556520092, "left": {"leaf": True, "class": 1}, "right": {"leaf": False, "feature": 0, "threshold": -0.06556848434495742, "left": {"leaf": False, "feature": 9, "threshold": -1.2712446380325726, "left": {"leaf": False, "feature": 3, "threshold": -0.3618619210456654, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": -0.3038779047468351, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}}, "right": {"leaf": False, "feature": 9, "threshold": 0.007757562185081444, "left": {"leaf": False, "feature": 7, "threshold": -0.48038446141526137, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 1, "threshold": 1.3784925414405518, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 2}}}}}, "right": {"leaf": True, "class": 3}}}
+_DT_TREE = {"leaf": False, "feature": 0, "threshold": -1.1118619632661395, "left": {"leaf": False, "feature": 6, "threshold": -0.491384282182837, "left": {"leaf": False, "feature": 9, "threshold": -1.1208735400193295, "left": {"leaf": False, "feature": 1, "threshold": -0.8349053306158379, "left": {"leaf": False, "feature": 1, "threshold": -2.312045530936167, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": 0.134369917873337, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.2097648097846423, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}}}, "right": {"leaf": False, "feature": 3, "threshold": 0.0845326164404404, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.29772551701449823, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}}}, "right": {"leaf": False, "feature": 10, "threshold": -0.6614378277661479, "left": {"leaf": False, "feature": 1, "threshold": 0.1498548029310481, "left": {"leaf": False, "feature": 7, "threshold": -0.493196961916072, "left": {"leaf": False, "feature": 9, "threshold": 0.31219882682286904, "left": {"leaf": False, "feature": 5, "threshold": -2.868812520453157, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 1, "threshold": -3.296805664483053, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 2}}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 0, "threshold": 0.9972370185995272, "left": {"leaf": False, "feature": 3, "threshold": 0.1171745916479516, "left": {"leaf": False, "feature": 2, "threshold": -0.30860669992418366, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": False, "feature": 3, "threshold": 0.29772551701449823, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}}, "right": {"leaf": True, "class": 3}}}, "right": {"leaf": False, "feature": 9, "threshold": -0.12874651682088423, "left": {"leaf": False, "feature": 1, "threshold": -0.3425252638423949, "left": {"leaf": False, "feature": 0, "threshold": -0.05731247233330618, "left": {"leaf": False, "feature": 3, "threshold": -0.41695522922808215, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 9, "threshold": 0.051640214669742154, "left": {"leaf": False, "feature": 3, "threshold": -0.39586628917502237, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": False, "feature": 0, "threshold": -0.05731247233330618, "left": {"leaf": False, "feature": 7, "threshold": -0.493196961916072, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": True, "class": 3}}}}}}
 
 _DT_LABELS = {0: "LOW", 1: "LOW-MED", 2: "MEDIUM", 3: "HIGH"}
 
@@ -474,11 +476,25 @@ def dt_predict(features):
     return _DT_LABELS[cls], cls
 
 def mood_breakdown(text, lr_score):
-    """Estimate emotion percentages from lexical analysis."""
-    anxious_w = {"anxious","worried","scared","dread","panic","nervous","afraid","tense","restless"}
-    sad_w     = {"sad","cry","crying","tears","depressed","hopeless","empty","numb","broken","heartbroken","devastated"}
+    """Estimate emotion percentages from lexical analysis.
+
+    Uses the SAME master NEGATIVE_WORDS / POSITIVE_WORDS lists that drive the
+    LR/SVM/DT models, so the pie chart can never disagree with the score the
+    way it used to (e.g. "my day was really bad" scoring HIGH stress while
+    the chart still showed Happy 100%, because "bad" wasn't in any of the
+    category-specific sub-lists below). Every negative word now lands in a
+    specific emotion category if one matches, or a generic Sad catch-all
+    otherwise — so no negative word is ever invisible to this chart.
+    """
+    anxious_w = {"anxious","worried","scared","dread","panic","nervous","afraid","tense","restless",
+                 "stressed","overwhelmed","anxiety","pressure","suffocating","panicking"}
+    sad_w     = {"sad","cry","crying","tears","depressed","hopeless","empty","numb","broken","heartbroken","devastated",
+                 "low","down","blue","glum","gloomy","discouraged","defeated","disheartened","flat","dull","blah",
+                 "bad","terrible","horrible","awful","miserable","unbearable","rough","tired","exhausted","drained",
+                 "shattered","shattering","pointless","worthless","useless"}
     angry_w   = {"angry","furious","frustrated","hate","rage","irritated","mad","upset"}
-    lonely_w  = {"alone","lonely","ignored","unloved","rejected","isolated","unseen","abandoned"}
+    lonely_w  = {"alone","lonely","ignored","unloved","rejected","isolated","unseen","abandoned","trapped","stuck"}
+
     words     = [re.sub(r"[^a-z']","",w) for w in text.lower().split()]
     excl      = text.count("!")
     caps      = sum(1 for c in text if c.isupper()) / max(len(text), 1)
@@ -487,12 +503,24 @@ def mood_breakdown(text, lr_score):
     sc = sum(1 for w in words if w in sad_w)
     agc= sum(1 for w in words if w in angry_w)
     lc = sum(1 for w in words if w in lonely_w)
+
+    # Catch-all: any word that's negative in the master list but wasn't
+    # already counted above (e.g. future words added to NEGATIVE_WORDS)
+    # still shows up as Sad instead of silently vanishing.
+    categorized = anxious_w | sad_w | angry_w | lonely_w
+    uncategorized_neg = sum(1 for w in words if w in NEGATIVE_WORDS and w not in categorized)
+    sc += uncategorized_neg
+
+    neg_emotion_total = ac + sc + agc + lc
+    caps_bonus = caps * 15 if neg_emotion_total > 0 else 0
+    excl_bonus = excl * 1.2 if neg_emotion_total > 0 else 0
+    happy_baseline = max(0, (1 - lr_score / 10)) * (1.5 if neg_emotion_total > 0 else 4.0)
     raw = {
-        "Anxious": ac * 2.5 + caps * 15,
+        "Anxious": ac * 2.5 + caps_bonus,
         "Sad":     sc * 2.5,
-        "Angry":   agc * 2.5 + excl * 1.2,
+        "Angry":   agc * 2.5 + excl_bonus,
         "Lonely":  lc * 2.5,
-        "Happy":   pos * 2.0 + max(0, (1 - lr_score / 10)) * 4,
+        "Happy":   pos * 2.0 + happy_baseline,
     }
     total = max(sum(raw.values()), 1)
     pct   = {k: round(v / total * 100) for k, v in raw.items()}
@@ -738,6 +766,7 @@ defaults = {
     "expanded_card":None,
     "chat_ended":False,      # True after user sends one message and session closes
     "session_result":None,   # stores last analysis for session summary
+    "day_text":"",           # free-text "how was your day" for Wellness Check
 }
 for k,v in defaults.items():
     if k not in st.session_state: st.session_state[k]=v
@@ -1131,8 +1160,17 @@ elif st.session_state.page == "Wellness Check":
                 """, unsafe_allow_html=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("<div style='color:#5A9A94; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.6rem;'>Before we begin — in your own words</div>", unsafe_allow_html=True)
+            day_text_input = st.text_area(
+                "How was your day? What's been on your mind?",
+                placeholder="Optional — write a sentence or two about how today felt for you...",
+                key="day_text_input", height=90,
+            )
+            st.markdown("<div style='color:#8AB8B4; font-size:0.75rem; margin:-0.3rem 0 1rem;'>We'll blend this with your quiz answers using the same language-analysis engine as Chat Mode, for a fuller picture. 🌿</div>", unsafe_allow_html=True)
+
             st.markdown("<div style='color:#5A9A94; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.6rem;'>Or take the full assessment</div>", unsafe_allow_html=True)
             if st.button("🌿  Start Full Wellness Assessment", use_container_width=False):
+                st.session_state.day_text = (day_text_input or "").strip()
                 st.session_state.quiz_step=0; st.session_state.quiz_answers=[]; st.rerun()
 
         else:
@@ -1168,9 +1206,24 @@ elif st.session_state.page == "Wellness Check":
     else:
         # RESULTS
         answers = st.session_state.quiz_answers
-        final = round((sum(answers)/(len(QUIZ)*9))*10, 1)
+        quiz_final = round((sum(answers)/(len(QUIZ)*9))*10, 1)
+        day_text = st.session_state.get("day_text", "")
+
+        # Combine the structured quiz (psychology-based: sleep, workload, tension,
+        # outlook, social connection, etc.) with the same NLP pipeline used in
+        # Chat Mode, if the user wrote about their day. Quiz is weighted higher
+        # since it's a more reliable, structured signal; the free text adds
+        # texture and can catch things the quiz options don't cover.
+        nlp_result = analyze(day_text) if day_text else None
+        if nlp_result:
+            final = round(quiz_final * 0.65 + nlp_result["ens"] * 0.35, 1)
+        else:
+            final = quiz_final
+
         lvl = 3 if final>=7 else 2 if final>=5 else 1 if final>=3 else 0
         rd = RESP[lvl]; rt = random.choice(rd["responses"])
+        if nlp_result and nlp_result.get("distortions"):
+            rt = rt + " " + DISTORTION_REFRAMES[nlp_result["distortions"][0]]
         cat_scores=[{"cat":QUIZ[i]["cat"],"score":answers[i],"max":9} for i in range(len(QUIZ))]
 
         st.markdown(f"""
@@ -1182,6 +1235,15 @@ elif st.session_state.page == "Wellness Check":
                 Overall score: <strong style='color:#1A4A44;'>{final}/10</strong>
             </div>
         </div>""", unsafe_allow_html=True)
+
+        if nlp_result:
+            st.markdown(f"""
+            <div style='background:#EAF9F8; border-radius:12px; padding:0.7rem 1rem; margin-bottom:1rem;
+                        font-size:0.82rem; color:#2E7A72; text-align:center;'>
+                📋 Quiz: <strong>{quiz_final}/10</strong> &nbsp;·&nbsp;
+                📝 Your words: <strong>{nlp_result["ens"]}/10</strong> &nbsp;·&nbsp;
+                🌿 Combined: <strong>{final}/10</strong>
+            </div>""", unsafe_allow_html=True)
 
         r1,r2 = st.columns(2, gap="medium")
         with r1: st.image(fig_img(gauge_chart(final,"Overall")), use_container_width=True)
@@ -1219,7 +1281,8 @@ elif st.session_state.page == "Wellness Check":
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🔄  Retake Assessment"):
             st.session_state.quiz_step=-1; st.session_state.quiz_answers=[]
-            st.session_state.quiz_done=False; st.session_state.expanded_card=None; st.rerun()
+            st.session_state.quiz_done=False; st.session_state.expanded_card=None
+            st.session_state.day_text=""; st.rerun()
 
 
 # ══════════════════════════════════════════════════════════
