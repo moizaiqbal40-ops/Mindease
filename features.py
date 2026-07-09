@@ -13,7 +13,9 @@ NEGATIVE_WORDS = {
     "suffocating","misery","anguish","devastated","shattered","cried",
     "dying","dead","pointless","pathetic","disgusting","bad","upset",
     "nervous","tense","restless","irritated","confused","heartbroken",
-    "drowning","drained","terrified","panicking","shattering","losing"
+    "drowning","drained","terrified","panicking","shattering","losing",
+    "low","down","blue","meh","unwell","glum","gloomy","discouraged",
+    "defeated","disheartened","flat","dull","blah","rough"
 }
 POSITIVE_WORDS = {
     "happy","good","great","wonderful","amazing","better","hope","hopeful",
