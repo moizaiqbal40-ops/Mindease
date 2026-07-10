@@ -133,6 +133,10 @@ requirements.txt
 - **Mindfulness-Based Stress Reduction** — grounding techniques (4-7-8 breathing, 5-4-3-2-1) matched to detected severity.
 - **Positive Psychology** — reinforces existing strengths and coping capacity rather than only flagging deficits.
 
+## 🆘 Crisis-Safety Layer
+
+Before any stress scoring runs, every message is checked against a dedicated crisis-detection layer — phrase matching plus typo-tolerant fuzzy matching (edit distance, implemented from scratch) against self-harm/suicide language. If triggered, the app **completely bypasses the ML pipeline** and immediately shows a direct, caring message with real crisis helplines (Pakistan: Umang, Rozan Lahore; international: Befrienders Worldwide) instead of a stress score. This exists because a mental-health app that tells someone expressing suicidal ideation "Happy 100%, try a gratitude practice" isn't just a bug — it's a genuine safety failure. Detection is intentionally biased toward over-triggering: a false positive just shows a caring message and resources, which is a harmless outcome; a missed detection is the dangerous one.
+
 ## ⚠️ Disclaimer
 
 MindEase is a student/portfolio project and is **not** a substitute for professional mental health care. If you are experiencing severe distress, please reach out to a professional or a crisis line in your area.
