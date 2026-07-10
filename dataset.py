@@ -131,6 +131,11 @@ MORE_DATA = [
     ("I feel so low and defeated, nothing feels worth it.", 3, 8.5),
     ("I'm just feeling flat and off today, hard to explain.", 1, 3.5),
     ("I feel really down and discouraged about everything right now.", 2, 6.3),
+    ("My parents fight all the time and are talking about divorce, I dont want to be part of this family.", 3, 7.6),
+    ("I feel like quitting my job, I cant take the pressure anymore.", 2, 6.4),
+    ("My friend betrayed me and I feel so hurt and alone.", 2, 6.5),
+    ("There's so much conflict and arguing at home lately, it's exhausting.", 2, 6.2),
+    ("I got fired today and I feel humiliated and lost.", 3, 7.8),
 
     # ---------- Short, colloquial phrasing (brevity coverage) ----------
     ("Feeling great today.", 0, 1.0),
@@ -141,6 +146,8 @@ MORE_DATA = [
     ("Feeling really down.", 2, 6.0),
     ("I feel hopeless.", 3, 8.3),
     ("I can't cope anymore.", 3, 8.7),
+    ("My parents keep fighting.", 2, 6.1),
+    ("Thinking about quitting my job.", 1, 3.9),
 ]
 
 def get_dataset():
