@@ -337,7 +337,14 @@ NEGATIVE_WORDS = {
     "suffocating","misery","anguish","devastated","shattered","cried",
     "dying","dead","pointless","pathetic","disgusting","bad","upset",
     "nervous","tense","restless","irritated","confused","heartbroken",
-    "drowning","drained","terrified","panicking","shattering","losing"
+    "drowning","drained","terrified","panicking","shattering","losing",
+    "low","down","blue","meh","unwell","glum","gloomy","discouraged",
+    "defeated","disheartened","flat","dull","blah","rough",
+    "fight","fighting","divorce","divorced","divorcing","argue","arguing",
+    "argument","conflict","breakup","cheat","cheated","cheating","betrayed",
+    "quit","quitting","fired","unemployed","toxic","abusive","abuse",
+    "neglected","insecure","unstable","chaos","chaotic","dysfunctional",
+    "resent","resentful","bully","bullied","humiliated","embarrassed","abandon"
 }
 POSITIVE_WORDS = {
     "happy","good","great","wonderful","amazing","better","hope","hopeful",
@@ -366,6 +373,24 @@ FEATURE_NAMES = ["neg","length","excl","caps","qmarks","lex","pos",
 # ══════════════════════════════════════════════════════════
 MAX_INPUT_WORDS = 300   # token-management: cap runaway inputs before any processing
 
+def _stem(w):
+    """Lightweight suffix-stripping so inflections/common misspellings
+    (e.g. 'quiting' for 'quit', 'stressing' for 'stress') still match the
+    word lists without needing every variant hand-listed. Used only as a
+    fallback after an exact match fails, so it can't break exact matches."""
+    if len(w) > 5 and w.endswith("ing"):
+        return w[:-3]
+    if len(w) > 5 and w.endswith("ed"):
+        return w[:-2]
+    if len(w) > 5 and w.endswith("es"):
+        return w[:-2]
+    if len(w) > 4 and w.endswith("s") and not w.endswith("ss"):
+        return w[:-1]
+    return w
+
+def _matches(word, word_set):
+    return word in word_set or _stem(word) in word_set
+
 def extract_features(text):
     """Extract 12 numerical stress signals from raw text."""
     if not text or not text.strip():
@@ -384,10 +409,10 @@ def extract_features(text):
     for i, w in enumerate(cleaned):
         prev = cleaned[i - 1] if i > 0 else ""
         negated = prev in NEGATION_WORDS
-        if w in NEGATIVE_WORDS:
+        if _matches(w, NEGATIVE_WORDS):
             if negated: pos += 1; negation_flips += 1
             else: neg += 1
-        elif w in POSITIVE_WORDS:
+        elif _matches(w, POSITIVE_WORDS):
             if negated: neg += 1; negation_flips += 1
             else: pos += 1
 
@@ -416,34 +441,34 @@ def extract_features(text):
 #    Decision Tree      : Accuracy 59%  (±1-level accuracy 100%)
 #  Retrain any time with: python train.py
 # ══════════════════════════════════════════════════════════
-_FEATURE_MEAN = np.array([1.0543478260869565, 9.695652173913043, 0.17391304347826086,
-                           0.030818090273619543, 0.0, 0.9877618154792068,
-                           0.31521739130434784, 0.1956521739130435,
-                           0.010869565217391304, 0.08690524451394012,
-                           0.30434782608695654, 0.0])
-_FEATURE_STD  = np.array([0.9482722324538985, 2.030951428543768, 0.5635426694267708,
-                           0.03643818138879521, 1.0, 0.03446475706774315,
-                           0.6414885512904135, 0.3967019041498838,
-                           0.10368904363227668, 0.07753349634111395,
-                           0.4601306627938417, 1.0])
+_FEATURE_MEAN = np.array([1.1030927835051547, 9.494845360824742, 0.16494845360824742,
+                           0.03125049472125881, 0.0, 0.9853935869399786,
+                           0.30927835051546393, 0.20618556701030927,
+                           0.010309278350515464, 0.09073549589013503,
+                           0.29896907216494845, 0.0])
+_FEATURE_STD  = np.array([0.9790015541037788, 2.2297136395131663, 0.5501717139845905,
+                           0.03565343890773709, 1.0, 0.03940645943163342,
+                           0.6318166369502911, 0.40456529629584687,
+                           0.10100988630033716, 0.08254289094200465,
+                           0.4578062538386498, 1.0])
 
-_LR_W = np.array([1.7857506989908, 0.07936848122489967, 0.20554781187890553,
-                   0.3655948511943456, 0.0, 0.07742385294003504,
-                   -0.6576504485668843, 0.32741330507485655,
-                   -0.40809441235720917, 0.4987829397097666,
-                   0.5489360572995601, 0.0])
-_LR_B = 5.028260869565209
+_LR_W = np.array([1.6599628231985166, 0.04170889511211508, 0.31406430033041016,
+                   0.34458363848144696, 0.0, 0.15402074377011304,
+                   -0.7072962729007636, 0.17291864051283118,
+                   -0.3189822640414207, 0.49312643448704124,
+                   0.5251966617989492, 0.0])
+_LR_B = 5.055670103092774
 
-_SVM_W = np.array([0.3784928704843767, 0.14091257963897771, 0.07789962970284584,
-                    0.05509102591457233, 0.0, 0.05764677709210057,
-                    -0.20177512291972238, 0.1931691676841796,
-                    8.533388307236952e-07, 0.1504501965717579,
-                    0.14219855017936006, 0.0])
-_SVM_B = -0.008369565217391295
+_SVM_W = np.array([0.39016935076430587, 0.06654517420105384, 0.07493298769375582,
+                    0.05901032119586086, 0.0, 0.004402721347261862,
+                    -0.20700294202054065, 0.17869631916424994,
+                    -6.8700754247992835e-06, 0.1724622111731963,
+                    0.15758811381034155, 0.0])
+_SVM_B = 0.10525773195876177
 
 # Greedy Gini-impurity decision tree, max depth 6, trained on the same
 # normalized features. Stored as a nested dict; walked at inference time.
-_DT_TREE = {"leaf": False, "feature": 0, "threshold": -1.1118619632661395, "left": {"leaf": False, "feature": 6, "threshold": -0.491384282182837, "left": {"leaf": False, "feature": 9, "threshold": -1.1208735400193295, "left": {"leaf": False, "feature": 1, "threshold": -0.8349053306158379, "left": {"leaf": False, "feature": 1, "threshold": -2.312045530936167, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": 0.134369917873337, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.2097648097846423, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}}}, "right": {"leaf": False, "feature": 3, "threshold": 0.0845326164404404, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.29772551701449823, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}}}, "right": {"leaf": False, "feature": 10, "threshold": -0.6614378277661479, "left": {"leaf": False, "feature": 1, "threshold": 0.1498548029310481, "left": {"leaf": False, "feature": 7, "threshold": -0.493196961916072, "left": {"leaf": False, "feature": 9, "threshold": 0.31219882682286904, "left": {"leaf": False, "feature": 5, "threshold": -2.868812520453157, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 1, "threshold": -3.296805664483053, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 2}}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 0, "threshold": 0.9972370185995272, "left": {"leaf": False, "feature": 3, "threshold": 0.1171745916479516, "left": {"leaf": False, "feature": 2, "threshold": -0.30860669992418366, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": False, "feature": 3, "threshold": 0.29772551701449823, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}}, "right": {"leaf": True, "class": 3}}}, "right": {"leaf": False, "feature": 9, "threshold": -0.12874651682088423, "left": {"leaf": False, "feature": 1, "threshold": -0.3425252638423949, "left": {"leaf": False, "feature": 0, "threshold": -0.05731247233330618, "left": {"leaf": False, "feature": 3, "threshold": -0.41695522922808215, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 9, "threshold": 0.051640214669742154, "left": {"leaf": False, "feature": 3, "threshold": -0.39586628917502237, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": False, "feature": 0, "threshold": -0.05731247233330618, "left": {"leaf": False, "feature": 7, "threshold": -0.493196961916072, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": True, "class": 3}}}}}}
+_DT_TREE = {"leaf": False, "feature": 0, "threshold": -1.1267528420983708, "left": {"leaf": False, "feature": 6, "threshold": -0.4895064998736283, "left": {"leaf": False, "feature": 9, "threshold": -1.099252701893935, "left": {"leaf": False, "feature": 1, "threshold": -0.6704203330572645, "left": {"leaf": False, "feature": 1, "threshold": -2.015884587675637, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}, "right": {"leaf": True, "class": 1}}, "right": {"leaf": False, "feature": 3, "threshold": 0.12519945143519437, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.20225380667879403, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 1}}}}, "right": {"leaf": False, "feature": 3, "threshold": 0.07426521661315405, "left": {"leaf": True, "class": 0}, "right": {"leaf": False, "feature": 3, "threshold": 0.2921505544629934, "left": {"leaf": True, "class": 1}, "right": {"leaf": True, "class": 0}}}}, "right": {"leaf": False, "feature": 2, "threshold": -0.29981267559834485, "left": {"leaf": False, "feature": 7, "threshold": -0.5096471914376258, "left": {"leaf": False, "feature": 9, "threshold": -1.099252701893935, "left": {"leaf": False, "feature": 3, "threshold": -0.4382605212836272, "left": {"leaf": False, "feature": 0, "threshold": -0.10530400393442725, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 2}}, "right": {"leaf": False, "feature": 5, "threshold": -2.4489563244958994, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 1}}}, "right": {"leaf": False, "feature": 3, "threshold": 0.10762565111647868, "left": {"leaf": False, "feature": 0, "threshold": -0.10530400393442725, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}, "right": {"leaf": False, "feature": 9, "threshold": 1.3237300373527645, "left": {"leaf": True, "class": 3}, "right": {"leaf": True, "class": 2}}}}, "right": {"leaf": False, "feature": 10, "threshold": -0.6530471562110153, "left": {"leaf": True, "class": 2}, "right": {"leaf": False, "feature": 0, "threshold": -0.10530400393442725, "left": {"leaf": True, "class": 3}, "right": {"leaf": False, "feature": 3, "threshold": -0.06352788242231748, "left": {"leaf": True, "class": 2}, "right": {"leaf": True, "class": 3}}}}}, "right": {"leaf": True, "class": 3}}}
 
 _DT_LABELS = {0: "LOW", 1: "LOW-MED", 2: "MEDIUM", 3: "HIGH"}
 
@@ -491,23 +516,26 @@ def mood_breakdown(text, lr_score):
                  "low","down","blue","glum","gloomy","discouraged","defeated","disheartened","flat","dull","blah",
                  "bad","terrible","horrible","awful","miserable","unbearable","rough","tired","exhausted","drained",
                  "shattered","shattering","pointless","worthless","useless"}
-    angry_w   = {"angry","furious","frustrated","hate","rage","irritated","mad","upset"}
-    lonely_w  = {"alone","lonely","ignored","unloved","rejected","isolated","unseen","abandoned","trapped","stuck"}
+    angry_w   = {"angry","furious","frustrated","hate","rage","irritated","mad","upset",
+                 "fight","fighting","argue","arguing","argument","conflict","betrayed",
+                 "cheated","cheating","resent","resentful","bullied","bully"}
+    lonely_w  = {"alone","lonely","ignored","unloved","rejected","isolated","unseen","abandoned","abandon",
+                 "trapped","stuck","neglected"}
 
     words     = [re.sub(r"[^a-z']","",w) for w in text.lower().split()]
     excl      = text.count("!")
     caps      = sum(1 for c in text if c.isupper()) / max(len(text), 1)
-    pos       = sum(1 for w in words if w in POSITIVE_WORDS)
-    ac = sum(1 for w in words if w in anxious_w)
-    sc = sum(1 for w in words if w in sad_w)
-    agc= sum(1 for w in words if w in angry_w)
-    lc = sum(1 for w in words if w in lonely_w)
+    pos       = sum(1 for w in words if _matches(w, POSITIVE_WORDS))
+    ac = sum(1 for w in words if _matches(w, anxious_w))
+    sc = sum(1 for w in words if _matches(w, sad_w))
+    agc= sum(1 for w in words if _matches(w, angry_w))
+    lc = sum(1 for w in words if _matches(w, lonely_w))
 
     # Catch-all: any word that's negative in the master list but wasn't
     # already counted above (e.g. future words added to NEGATIVE_WORDS)
     # still shows up as Sad instead of silently vanishing.
     categorized = anxious_w | sad_w | angry_w | lonely_w
-    uncategorized_neg = sum(1 for w in words if w in NEGATIVE_WORDS and w not in categorized)
+    uncategorized_neg = sum(1 for w in words if _matches(w, NEGATIVE_WORDS) and not _matches(w, categorized))
     sc += uncategorized_neg
 
     neg_emotion_total = ac + sc + agc + lc
@@ -539,8 +567,76 @@ def detect_distortions(features):
         flags.append("catastrophizing")  # "completely/utterly" + negative words
     return flags
 
+# ══════════════════════════════════════════════════════════
+#  CRISIS-DETECTION SAFETY LAYER
+#  This runs BEFORE the ML pipeline and, if triggered, completely
+#  overrides the stress score / mood chart / CBT response — a
+#  mental-health app must never tell someone expressing suicidal
+#  ideation that they scored "Happy 100%, try gratitude." Instead
+#  it immediately surfaces crisis resources.
+#
+#  Two detection mechanisms:
+#   1. Phrase matching — multi-word crisis phrases as substrings.
+#   2. Fuzzy single-word matching (edit distance, from scratch) —
+#      catches typos like "sucidial" for "suicidal", which a plain
+#      keyword lookup would silently miss.
+#  Detection is intentionally biased toward over-triggering: a
+#  false positive just shows a caring message + resources, which
+#  is a harmless outcome. A false negative here is the dangerous one.
+# ══════════════════════════════════════════════════════════
+CRISIS_PHRASES = [
+    "kill myself", "kill my self", "end my life", "end myself", "ending my life",
+    "ending it all", "no reason to live", "no reason to keep living",
+    "better off dead", "not worth living", "cant go on anymore", "can't go on anymore",
+    "want to die", "wish i was dead", "wish i were dead", "take my own life",
+    "hurt myself", "harm myself", "self harm", "selfharm", "cutting myself",
+    "dont want to be here anymore", "don't want to be here anymore",
+    "end it all", "give up on life", "giving up on life", "no point in living",
+    "life isnt worth living", "life isn't worth living", "tired of living",
+    "done with life",
+]
+CRISIS_CORE_WORDS = {"suicide", "suicidal", "overdose"}
+
+def _edit_distance(a, b):
+    """Standard Levenshtein edit distance, implemented from scratch."""
+    n, m = len(a), len(b)
+    if n == 0: return m
+    if m == 0: return n
+    prev = list(range(m + 1))
+    for i in range(1, n + 1):
+        curr = [i] + [0] * m
+        for j in range(1, m + 1):
+            cost = 0 if a[i-1] == b[j-1] else 1
+            curr[j] = min(prev[j] + 1, curr[j-1] + 1, prev[j-1] + cost)
+        prev = curr
+    return prev[m]
+
+def detect_crisis(text):
+    """Returns True if the text contains crisis/self-harm language, phrase-matched
+    or fuzzy-matched (typo-tolerant) against a small, high-sensitivity word list."""
+    if not text:
+        return False
+    lower = text.lower()
+    for phrase in CRISIS_PHRASES:
+        if phrase in lower:
+            return True
+    words = [re.sub(r"[^a-z]", "", w) for w in lower.split()]
+    for w in words:
+        if len(w) < 4:
+            continue
+        for core in CRISIS_CORE_WORDS:
+            max_dist = 1 if len(core) <= 6 else 2
+            if _edit_distance(w, core) <= max_dist:
+                return True
+    return False
+
 def analyze(text):
     """Run full tri-algorithm pipeline on input text."""
+    if detect_crisis(text):
+        return {"crisis": True, "lr": 10.0, "dt": "HIGH", "dtl": 3,
+                "svm": "STRESSED", "ens": 10.0, "features": extract_features(text),
+                "mood": {"Anxious": 0, "Sad": 100, "Angry": 0, "Lonely": 0, "Happy": 0},
+                "distortions": []}
     f              = extract_features(text)
     lr             = lr_predict(f)
     dt, dtl        = dt_predict(f)
@@ -556,7 +652,7 @@ def analyze(text):
     ens  = round(ens, 1)
     mood = mood_breakdown(text, lr)
     distortions = detect_distortions(f)
-    return {"lr": lr, "dt": dt, "dtl": dtl, "svm": svm, "ens": ens,
+    return {"crisis": False, "lr": lr, "dt": dt, "dtl": dtl, "svm": svm, "ens": ens,
             "features": f, "mood": mood, "distortions": distortions}
 
 
@@ -595,7 +691,13 @@ RESP = {
             "This sounds overwhelming — and I'm really glad you're expressing it rather than holding it in. One small act right now: drink a glass of water. Not because it fixes everything — because you deserve care in this moment."
         ],
         "technique":"Progressive Muscle Relaxation","color_hex":"D05050","bar_color":"#E88080",
-        "exercise":"TENSE each muscle group 5 sec then RELEASE: Feet → Legs → Stomach → Hands → Shoulders → Face. Feel the release."}
+        "exercise":"TENSE each muscle group 5 sec then RELEASE: Feet → Legs → Stomach → Hands → Shoulders → Face. Feel the release."},
+    "CRISIS": {"emoji":"🆘","label":"Please Reach Out Right Now","color":"#B91C1C","bg":"#FEE2E2",
+        "responses":[
+            "I'm really glad you told me this, and I want you to know you don't have to face it alone. What you're feeling matters, and there are people trained to help you through this moment — right now, not just eventually. Please reach out to one of the numbers below, or go to your nearest emergency room, or call someone you trust to be with you. You deserve support from a real person, immediately."
+        ],
+        "technique":"Crisis Support — Pakistan & International","color_hex":"B91C1C","bar_color":"#EF4444",
+        "exercise":"🇵🇰 Umang Mental Health Helpline: 0317-4288665 (Pakistan, 24/7)<br>🇵🇰 Rozan Helpline (Lahore): 042-35761999<br>🌍 Befrienders Worldwide: befrienders.org (find a helpline in your country)<br>If you are in immediate danger, please call your local emergency number or go to the nearest hospital right now."}
 }
 
 DISTORTION_REFRAMES = {
@@ -605,6 +707,8 @@ DISTORTION_REFRAMES = {
 }
 
 def get_response(analysis):
+    if analysis.get("crisis"):
+        return "CRISIS", RESP["CRISIS"], RESP["CRISIS"]["responses"][0]
     s, dtl = analysis["ens"], analysis["dtl"]
     lvl = dtl
     if s >= 7: lvl = 3
