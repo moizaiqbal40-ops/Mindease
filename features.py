@@ -15,7 +15,12 @@ NEGATIVE_WORDS = {
     "nervous","tense","restless","irritated","confused","heartbroken",
     "drowning","drained","terrified","panicking","shattering","losing",
     "low","down","blue","meh","unwell","glum","gloomy","discouraged",
-    "defeated","disheartened","flat","dull","blah","rough"
+    "defeated","disheartened","flat","dull","blah","rough",
+    "fight","fighting","divorce","divorced","divorcing","argue","arguing",
+    "argument","conflict","breakup","cheat","cheated","cheating","betrayed",
+    "quit","quitting","fired","unemployed","toxic","abusive","abuse",
+    "neglected","insecure","unstable","chaos","chaotic","dysfunctional",
+    "resent","resentful","bully","bullied","humiliated","embarrassed","abandon"
 }
 POSITIVE_WORDS = {
     "happy","good","great","wonderful","amazing","better","hope","hopeful",
@@ -39,6 +44,21 @@ FEATURE_NAMES = [
 NUM_FEATURES = len(FEATURE_NAMES)
 
 
+def _stem(w):
+    """Lightweight suffix-stripping fallback (see app.py for rationale)."""
+    if len(w) > 5 and w.endswith("ing"):
+        return w[:-3]
+    if len(w) > 5 and w.endswith("ed"):
+        return w[:-2]
+    if len(w) > 5 and w.endswith("es"):
+        return w[:-2]
+    if len(w) > 4 and w.endswith("s") and not w.endswith("ss"):
+        return w[:-1]
+    return w
+
+def _matches(word, word_set):
+    return word in word_set or _stem(word) in word_set
+
 def extract_features(text):
     """Extract stress-relevant numerical signals from raw text, from scratch (NumPy/regex only)."""
     if not text or not text.strip():
@@ -56,13 +76,13 @@ def extract_features(text):
     for i, w in enumerate(cleaned):
         prev = cleaned[i - 1] if i > 0 else ""
         negated = prev in NEGATION_WORDS
-        if w in NEGATIVE_WORDS:
+        if _matches(w, NEGATIVE_WORDS):
             if negated:
                 pos += 1          # "not sad" -> mild positive signal
                 negation_flips += 1
             else:
                 neg += 1
-        elif w in POSITIVE_WORDS:
+        elif _matches(w, POSITIVE_WORDS):
             if negated:
                 neg += 1           # "not happy" -> negative signal
                 negation_flips += 1
