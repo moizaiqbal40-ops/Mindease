@@ -1,150 +1,295 @@
-# 🧠 MindEase
+<div align="center">
 
-**An AI-assisted mental health companion that detects stress from natural language, using three classic ML algorithms implemented from scratch with NumPy.**
+<!-- Hero banner placeholder — 1200×280 recommended. Keep it abstract, no text baked into the image. -->
+<img src="./assets/banner.svg" alt="MindEase banner" width="100%">
 
-MindEase lets a user describe how they're feeling in plain text. Three independently-trained models — a linear regressor, a support vector machine, and a decision tree — each score the input, and an ensemble combines them into a single stress read. A small CBT/mindfulness engine then responds with a validating message and a matching coping technique.
+<br><br>
+
+# MindEase
+
+### Understanding stress through language, not guesswork.
+
+MindEase analyzes natural language to estimate stress levels using three machine learning models built entirely from scratch — paired with psychology-informed feedback and a safety layer that knows when *not* to guess.
+
+[Live Demo](#) · [Source Code](https://github.com/moizaiqbal40-ops/Mindease) · [Documentation](#)
+
+</div>
 
 ---
 
-## 📸 Screenshots
+## The Problem
 
-<img width="1350" height="645" alt="MindEase home screen" src="https://github.com/user-attachments/assets/7b603ab5-61d7-483a-9e8c-cf85f8ba32e4" />
-<img width="1352" height="640" alt="MindEase chat mode" src="https://github.com/user-attachments/assets/d08a05e4-581a-421b-b89a-59975150688b" />
-<img width="1366" height="591" alt="MindEase wellness check" src="https://github.com/user-attachments/assets/ae55cfd7-8b08-4731-b867-6680c8a5c070" />
+Most people don't have a low-friction way to check in on their own stress. The alternatives are a few extremes: generic wellness apps that ask surface-level questions, clinical assessments that require booking an appointment, or nothing at all — just pushing through until it becomes unmanageable.
+
+What's missing is something in between: a tool that takes a few honest sentences, reflects something useful back, and is upfront about what it can and can't tell you.
 
 ---
 
-## 🔍 How It Works
+## The Solution
+
+MindEase reads what someone writes — in their own words, not a multiple-choice form — and estimates a stress level using three independent models trained from scratch. Instead of picking one model and hiding the disagreement between them, it treats that comparison as useful signal in itself.
+
+The output isn't just a number. Every result is paired with a psychology-informed response, and every response passes through a safety layer before it reaches the user — one designed to recognize when a situation is beyond what a model should comment on, and to say so plainly instead of guessing.
+
+---
+
+## Feature Overview
+
+<table width="100%">
+<tr><td width="33%" valign="top">
+
+**Language-based analysis**
+
+Stress estimation from free-form text input — no rigid questionnaires.
+
+</td><td width="33%" valign="top">
+
+**Three-model comparison**
+
+Linear Regression, SVM, and Decision Tree, each implemented from scratch, evaluated side by side.
+
+</td><td width="33%" valign="top">
+
+**Safety-first responses**
+
+A dedicated layer that filters output before it reaches the user.
+
+</td></tr>
+<tr><td width="33%" valign="top">
+
+**Psychology-informed feedback**
+
+Responses grounded in established psychological framing, not generic platitudes.
+
+</td><td width="33%" valign="top">
+
+**Transparent limitations**
+
+The app tells you what it doesn't know, instead of quietly overstating confidence.
+
+</td><td width="33%" valign="top">
+
+**Built from first principles**
+
+No `sklearn.fit()` — every model's math is implemented in NumPy.
+
+</td></tr>
+</table>
+
+---
+
+## Demo
+
+<!-- Replace with an actual product walkthrough GIF, ~10–15s, showing: text input → analysis → response -->
+<div align="center">
+<img src="./assets/demo-placeholder.svg" alt="Demo walkthrough placeholder" width="80%">
+</div>
+
+**Screenshots**
+
+| Input | Analysis | Response |
+|---|---|---|
+| *[screenshot: text entry screen]* | *[screenshot: model comparison view]* | *[screenshot: psychology-informed response]* |
+
+---
+
+## Architecture
+
+<!-- Replace with a real architecture diagram — draw.io, Excalidraw, or a hand-made SVG all work well -->
+<div align="center">
+<img src="./assets/architecture-placeholder.svg" alt="Architecture diagram placeholder" width="85%">
+</div>
+
+At a high level:
 
 ```
-User text
-   │
-   ▼
-1. Feature Extraction (12 signals)
-   negative/positive word counts, negation-aware flips,
-   exclamation & caps ratio, intensifiers, absolutist
-   ("always"/"never") language, first-person ratio, etc.
-   │
-   ▼
-2. Three models run in parallel, each trained from scratch
-   ┌───────────────────────┬──────────────────────┬───────────────────────┐
-   │  Linear Regression    │  Support Vector       │  Decision Tree        │
-   │  (gradient descent)   │  Machine (hinge loss) │  (greedy Gini splits) │
-   │  → continuous 0–10    │  → STRESSED / NOT     │  → LOW…HIGH category  │
-   └───────────────────────┴──────────────────────┴───────────────────────┘
-   │
-   ▼
-3. Ensemble score (weighted vote, weights set from validation performance)
-   │
-   ▼
-4. CBT/mindfulness response engine
-   picks a severity-matched message + technique, and gently names any
-   detected cognitive distortion (all-or-nothing thinking, catastrophizing)
-   │
-   ▼
-5. Visual feedback — gauge, mood breakdown, category radar/bar charts
+User input (text)
+      │
+      ▼
+Preprocessing & feature extraction
+      │
+      ▼
+┌─────────────┬─────────────┬─────────────┐
+│   Linear    │     SVM     │  Decision   │
+│ Regression  │             │    Tree     │
+└─────────────┴─────────────┴─────────────┘
+      │
+      ▼
+Result comparison & aggregation
+      │
+      ▼
+Psychology-informed response generation
+      │
+      ▼
+Safety layer (checked before anything is shown)
+      │
+      ▼
+Output to user
 ```
 
-Every model is trained on a hand-labeled 110-example dataset (`dataset.py`) with an 80/20 train/test split — see `train.py` to reproduce the numbers below from scratch.
-
-**Wellness Check** additionally combines this NLP pipeline with an 8-question, psychology-based structured assessment (covering sleep, workload, physical tension, outlook, social connection, and stress response — categories drawn from standard perceived-stress-scale style screening). If you also describe your day in your own words, that text runs through the same analysis engine and is blended into the final score (quiz weighted 65%, free text 35%), so the result reflects both how you *say* you're doing on structured questions and what your own words actually convey.
+*[Confirm this matches your actual pipeline — adjust stages/order as needed.]*
 
 ---
 
-## 📊 Model Performance
+## How It Works
 
-Measured on a held-out 20-example test set (never seen during training), by re-running `train.py`:
-
-| Model | Task | Metric | Score |
-|---|---|---|---|
-| Linear Regression | Stress score (0–10, regression) | MAE | **1.22 points** |
-| | | R² | **0.73** |
-| SVM | Stressed / Not Stressed (binary) | Accuracy | **82%** |
-| | | F1 | **0.80** |
-| Decision Tree | LOW / LOW-MED / MEDIUM / HIGH (4-class) | Exact accuracy | **59%** |
-| | | Adjacent (±1 level) accuracy | **100%** |
-| Ensemble | 4-class (thresholded from ensemble score) | Accuracy | **64%** |
-
-**Honest context, because a portfolio should hold up under questions:**
-- The dataset is small (~110 examples) and self-authored, not a public benchmark — treat these as directionally meaningful, not clinically validated.
-- The decision tree's 4-class exact accuracy (55%) is the weakest link: with only 12 features and ordinal, overlapping categories, a shallow greedy tree confuses *adjacent* stress levels (e.g. MEDIUM vs. HIGH) far more than distant ones — hence the much higher 90% ±1-level accuracy. That's a real, documented limitation, not a rounding trick.
-- The SVM's binary task (genuinely stressed vs. not) is easier and the model performs solidly on it.
-- Retrain anytime with `python train.py` — it prints all of these numbers fresh.
+| Step | What happens |
+|---|---|
+| **1. Input** | The user describes how they're feeling in their own words. |
+| **2. Feature extraction** | Text is converted into numerical features the models can use. *[Describe your actual method — e.g. TF-IDF, word counts, custom features.]* |
+| **3. Model inference** | All three models independently estimate a stress level from the same input. |
+| **4. Comparison** | Outputs are compared rather than collapsed into a single silent answer. |
+| **5. Response mapping** | The result is mapped to a psychology-informed response category. |
+| **6. Safety check** | Before anything reaches the user, the safety layer evaluates whether a supportive-but-limited response is appropriate — or whether the app should defer entirely. |
 
 ---
 
-## 🗂️ Dataset Strategy — why hand-labeled data, validated against a public benchmark
+## Engineering Highlights
 
-**We use two datasets on purpose, for two different jobs:**
+Implementing Linear Regression, SVM, and a Decision Tree from scratch — rather than calling `sklearn` — was a deliberate choice, not a constraint of the assignment:
 
-1. **`dataset.py`** (~110 hand-labeled, chat-length examples) trains the models that actually run in the app. MindEase's real input is short — 2–20 word chat messages ("im stressed", "feeling low") — so the training data needs to look like that.
+- **Linear Regression** required implementing gradient descent directly, which meant reasoning about learning rate and convergence by hand instead of trusting a default.
+- **SVM** required understanding margin maximization and the actual optimization problem being solved, not just its scikit-learn interface.
+- **Decision Tree** required implementing entropy/information gain calculations and recursive splitting logic — the part of the model most people never see because a library handles it silently.
 
-2. **[Dreaddit](https://aclanthology.org/D19-6213/)** (Turcan & McKeown, Columbia University, ACL 2019) — a peer-reviewed, publicly available academic dataset of 3,553 human-annotated Reddit posts, the top-ranked public dataset for this exact task — is used as an **external validation benchmark**, not to train the live model. `train_dreaddit_svm.py` trains and evaluates a linear SVM on Dreaddit's own train/test split:
+The result is slower to build than importing three classes, but every prediction MindEase makes can be traced back to math the codebase actually implements — nothing is a black box by default.
 
-   | Metric | Score (on 715 held-out Dreaddit posts) |
-   |---|---|
-   | Accuracy | **69.0%** |
-   | F1 | **0.736** |
-   | Precision | **0.655** |
-   | Recall | **0.840** |
+---
 
-**Why the public dataset isn't what's deployed — a real finding, not an excuse:** Dreaddit posts average **86 words**; MindEase chat messages average **~5–10 words**. A model trained on long-form Reddit posts systematically misreads short messages — in testing, it flagged the clearly-stressed message *"im stressed"* as **NOT STRESSED**, because its length-dependent features are calibrated for paragraph-length text. This is a textbook **train/deployment distribution mismatch**. Rather than ship a model that looks good on a public leaderboard but performs worse on the actual product, we kept the SVM trained on chat-length data for production, and use Dreaddit purely as an external sanity check reported here for transparency.
+## Model Performance
 
-## 🤔 On "100% accuracy"
+| Model | Accuracy | Precision | Recall | F1 Score |
+|---|---|---|---|---|
+| Linear Regression | *[X.XX]* | *[X.XX]* | *[X.XX]* | *[X.XX]* |
+| SVM | *[X.XX]* | *[X.XX]* | *[X.XX]* | *[X.XX]* |
+| Decision Tree | *[X.XX]* | *[X.XX]* | *[X.XX]* | *[X.XX]* |
 
-We don't claim it, and you should be skeptical of any student project that does. Stress detection from short free text is a genuinely hard, subjective NLP problem — even the published Dreaddit paper's baselines land well short of 100%. The metrics above are real, reproducible, and honest; that's a stronger signal to a technical reviewer than a suspiciously perfect number with no methodology behind it.
+*Evaluated on [describe your held-out set — size, source, split ratio].*
 
-## ⚙️ Tech Stack
+---
 
-- **Python 3.10+**
-- **NumPy** — all three ML models implemented from scratch (batch gradient descent, hinge-loss subgradient descent, greedy Gini-impurity tree splitting) — no scikit-learn
-- **Streamlit** — UI
-- **Matplotlib + Pillow** — gauge, radar, bar, and timeline charts
+## Dataset Strategy
 
-## 🚀 How to Run
+The dataset used for training doesn't perfectly match the distribution of language MindEase sees in real use — a common and honest gap between training data and deployment conditions, not something unique to this project.
+
+**Training data:** *[describe source, size, and how labels were derived]*
+
+**Deployment reality:** *[describe how real user input differs — vocabulary, sentence length, context, etc.]*
+
+**Why this matters:** any model's reported accuracy reflects performance on data that resembles its training set. When real input diverges from that — different phrasing, different context, different stress expressions — performance can differ from the numbers above. This is disclosed deliberately, not discovered by a user the hard way.
+
+---
+
+## Why the Metrics Matter
+
+A model that reports 95% accuracy on a narrow, curated dataset can still perform poorly on language it wasn't trained on. MindEase reports its metrics alongside the conditions they were measured under, specifically so the numbers above aren't read as a guarantee.
+
+*[Add any additional known failure modes or edge cases here — this section is only as strong as its honesty.]*
+
+---
+
+## Safety Layer
+
+Every response passes through a safety check before reaching the user. The layer is designed around one principle: **it's better for the app to say less than it should than to say something it shouldn't.**
+
+<table width="100%">
+<tr><td width="50%" valign="top">
+
+**What it does**
+
+*[Describe your actual detection logic — e.g. keyword/pattern flags, severity thresholds, escalation language.]*
+
+</td><td width="50%" valign="top">
+
+**What happens next**
+
+*[Describe the actual fallback — e.g. a fixed, non-generated message pointing to real support resources, rather than a model-generated response.]*
+
+</td></tr>
+</table>
+
+This layer does not attempt to diagnose or treat anything — it exists to recognize the boundary of what a stress-estimation tool should comment on, and stop there.
+
+---
+
+## Psychology Framework
+
+<table width="100%">
+<tr><td width="50%" valign="top">
+
+**Framework used**
+
+*[Name the psychological model/framework the responses are grounded in.]*
+
+</td><td width="50%" valign="top">
+
+**Why it was chosen**
+
+*[One or two sentences on why this framework fits a stress-estimation context.]*
+
+</td></tr>
+</table>
+
+---
+
+## Tech Stack
+
+**Language** — <kbd>Python</kbd>
+**Machine Learning** — <kbd>NumPy</kbd> *(models implemented from scratch — no scikit-learn for training/inference)*
+**Interface** — <kbd>Streamlit</kbd>
+**Data Handling** — *[e.g. Pandas, if used]*
+
+---
+
+## Project Structure
+
+```
+mindease/
+├── data/              # [describe: raw/, processed/, etc.]
+├── models/            # from-scratch model implementations
+│   ├── linear_regression.py
+│   ├── svm.py
+│   └── decision_tree.py
+├── safety/            # safety layer logic
+├── app.py             # Streamlit entry point
+├── requirements.txt
+└── README.md
+```
+
+*[Adjust to match your actual folder layout.]*
+
+---
+
+## Installation
 
 ```bash
+git clone https://github.com/moizaiqbal40-ops/Mindease.git
+cd Mindease
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-To retrain the models on the included dataset and regenerate the metrics table above:
-```bash
-python train.py
-```
+---
 
-## 📁 Project Structure
+## Future Roadmap
 
-```
-app.py                    # Streamlit app + trained model parameters
-dataset.py                # Hand-labeled chat-length training examples (~110 samples)
-features.py                # From-scratch feature extraction
-train.py                   # Trains LR / SVM / Decision Tree on dataset.py, evaluates, saves params
-dreaddit_train.csv         # Public academic benchmark (Turcan & McKeown, ACL 2019) — train split
-dreaddit_test.csv          # Public academic benchmark — held-out test split
-train_dreaddit_svm.py      # External validation: trains/evaluates SVM on Dreaddit
-trained_params.json        # Output of the last train.py run
-requirements.txt
-```
-
-## 🧘 Psychology Frameworks
-
-- **CBT (Cognitive Behavioural Therapy)** — validates before advising, and flags simple cognitive distortions (all-or-nothing thinking, catastrophizing, self-blame) detected in the user's phrasing.
-- **Mindfulness-Based Stress Reduction** — grounding techniques (4-7-8 breathing, 5-4-3-2-1) matched to detected severity.
-- **Positive Psychology** — reinforces existing strengths and coping capacity rather than only flagging deficits.
-
-## 🆘 Crisis-Safety Layer
-
-Before any stress scoring runs, every message is checked against a dedicated crisis-detection layer — phrase matching plus typo-tolerant fuzzy matching (edit distance, implemented from scratch) against self-harm/suicide language. If triggered, the app **completely bypasses the ML pipeline** and immediately shows a direct, caring message with real crisis helplines (Pakistan: Umang, Rozan Lahore; international: Befrienders Worldwide) instead of a stress score. This exists because a mental-health app that tells someone expressing suicidal ideation "Happy 100%, try a gratitude practice" isn't just a bug — it's a genuine safety failure. Detection is intentionally biased toward over-triggering: a false positive just shows a caring message and resources, which is a harmless outcome; a missed detection is the dangerous one.
-
-## ⚠️ Disclaimer
-
-MindEase is a student/portfolio project and is **not** a substitute for professional mental health care. If you are experiencing severe distress, please reach out to a professional or a crisis line in your area.
-
-## 📜 License
-
-Apache License 2.0 — see `LICENSE` for details.
+- [ ] Expand training data to cover a wider range of phrasing and context
+- [ ] Add multi-language support
+- [ ] Review response content with a psychology/mental-health professional
+- [ ] Add model interpretability (e.g. feature contribution per prediction)
+- [ ] Package as a mobile-friendly experience
 
 ---
 
-*Built by a BS Computer Science student at Superior University, Lahore.*
+## License
+
+*[e.g. MIT License — see LICENSE for details.]*
+
+---
+
+## Author
+
+**Moeeza Iqbal**
+BS Computer Science, Superior University · Lahore, Pakistan
+
+[GitHub](#) · [LinkedIn](#) · [Portfolio](#)
