@@ -124,11 +124,11 @@ https://mindease-asvwrt2y6admlbex4gy43m.streamlit.app/
 
 <p align="center">
 
-<img src="YOUR_SCREENSHOT_1" width="31%">
+<img src="https://github.com/user-attachments/assets/c7410d2a-2ca0-40fb-b622-b4e74537da57" width="31%">
 
-<img src="YOUR_SCREENSHOT_2" width="31%">
+<img src="https://github.com/user-attachments/assets/7f2e7140-2aca-4e7b-ac29-106bf047628d" width="31%">
 
-<img src="YOUR_SCREENSHOT_3" width="31%">
+<img src="https://github.com/user-attachments/assets/72c8224a-d225-4ffa-a337-b1da4fe9b816" width="31%">
 
 </p>
 
