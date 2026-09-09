@@ -4,7 +4,7 @@
 # stressed (bool, for the SVM binary task).
 #
 # Levels are assigned by the author based on realistic clinical framing (CBT screening
-# language), not derived from the feature extractor itself, so training against them
+# language), so training against them
 # is a genuine (if small-scale, hand-built) supervised learning problem.
 
 DATA = [
