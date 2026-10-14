@@ -82,6 +82,7 @@ section[data-testid="stSidebar"] > div { padding: 0 !important; }
     width: calc(100% - 24px);
     margin: 4px 12px;
     padding: 11px 18px;
+    /* Border */
     border-radius: 12px;
     border: none;
     background: transparent;
