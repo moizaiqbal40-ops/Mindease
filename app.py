@@ -45,7 +45,6 @@ THEME_CSS = """
     --bg-card:    #F5FFFE;
     --bg-card2:   #EAF8F7;
     --bg-sidebar: #E0F5F4;
-    /* Borders */
     --border:     #B8E2E0;
     --border-soft:#D4F0EE;
     /* Text — dark on light = readable */
