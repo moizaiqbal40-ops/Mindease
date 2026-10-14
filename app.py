@@ -1,8 +1,6 @@
 """
 MindEase — Mental Health Chatbot
 Stress Detection & Psychological Support System
-BS Computer Science | Superior University, Lahore | 2025
-Apache 2.0 License
 """
 
 import streamlit as st
